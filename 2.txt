@@ -1,0 +1,1 @@
+Vamos pegar o nosso exemplo acima para entender o que acontece quando criamos um array.
