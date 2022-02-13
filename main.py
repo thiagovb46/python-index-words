@@ -64,14 +64,12 @@ def createsAnIndex(treeDimensionsList):
         for j in range (0, len(treeDimensionsList[i])):
             for k in range(0,len(treeDimensionsList[i][j])):
                 if(treeDimensionsList[i][j][k] in index):
-                    indexFileCount.update({i:1})
-                    index.update({treeDimensionsList[i][j][k]:index[treeDimensionsList[i][j][k]]+1})
+                    indexFileCount.update({i+1:indexFileCount[i+1]+1})
                 else:
-                    index.update({treeDimensionsList[i][j][k]:1}) 
+                    indexFileCount.update({i+1:1});
+                    index.update({treeDimensionsList[i][j][k]:indexFileCount[i+1]}) 
     return index;
-
-
-
+    
 def closeFiles (files):
     for i in range(0, len(files)):
         files[i].close()
