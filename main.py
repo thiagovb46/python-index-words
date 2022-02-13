@@ -57,7 +57,8 @@ def getWordRadical(treeDimensionsList):
         for j in range (0, len(treeDimensionsList[i])):
             for k in range(0,len(treeDimensionsList[i][j])):
                 treeDimensionsList[i][j][k] = radicalExtractor.stem(treeDimensionsList[i][j][k])
-    return 
+    return
+    
 def createsAnIndex(treeDimensionsList):
     index = {}
     indexFileCount = {}
@@ -66,8 +67,6 @@ def createsAnIndex(treeDimensionsList):
             for k in range(0,len(treeDimensionsList[i][j])):
                 if(treeDimensionsList[i][j][k] in index and i in index[treeDimensionsList[i][j][k]].keys()):
                     index[treeDimensionsList[i][j][k]] [i] +=1
-                    # index[treeDimensionsList[i][j][k]].update({i: index[treeDimensionsList[i][j][k]].values +1})
-                    # index.update({treeDimensionsList[i][j][k]: ) 
                 else:
                     if(treeDimensionsList[i][j][k] in index):
                         index[treeDimensionsList[i][j][k]] [i] = 1
