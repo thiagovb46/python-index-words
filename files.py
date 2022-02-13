@@ -1,3 +1,5 @@
+from locale import normalize
+import string
 import nltk
 
 linksOfFiles = open('links.txt') #Open the file with all links of files
@@ -13,6 +15,11 @@ wordsOfEachDocument = []
 
 filesContent = []
 
+def normalizeString (word):
+    word = word.lower()
+    word = word.rstrip()
+    return word
+
 for i in range(0,len(listOfFiles)):
     listOfFiles[i] = listOfFiles[i].rstrip()
     files.append(open(listOfFiles[i]))
@@ -22,7 +29,8 @@ for j in range(0, len(files)):
 
 for i in range(0,len(filesContent)):
     for j in range(0,len(filesContent[i])):
-        filesContent[i] [j] = filesContent[i] [j].rstrip()
+        # filesContent[i] [j] = filesContent[i] [j].rstrip()
+        filesContent[i] [j] = normalizeString(filesContent[i] [j])
 
 for i in range(0,len(filesContent)):
     for j in range(0,len(filesContent[i])):
@@ -31,13 +39,14 @@ for i in range(0,len(filesContent)):
     wordsOfEachDocument.append(wordsOfthisDocument.copy())
     wordsOfthisDocument.clear()
 
-for i in range(0,len(wordsOfEachDocument)):
-    for j in range (0, len(wordsOfEachDocument[i])):
-        if wordsOfEachDocument[i][j] in stopwords:
-            wordsOfEachDocument[i].remove(wordsOfEachDocument[i][j])
+# for i in range(0,len(wordsOfEachDocument)):
+#      for j in range (0, len(wordsOfEachDocument[i])):
+#         for k in range(0,len(wordsOfEachDocument[j])):
+#             #if wordsOfEachDocument[i][j][k] in stopwords:
+#             print(wordsOfEachDocument[i][j][k])
 
 for i in range(0,len(wordsOfEachDocument)):
-    for j in range (0, len(wordsOfEachDocument[i])):
-        print(wordsOfEachDocument[i])
+         print(wordsOfEachDocument[i])
+
 for i in range(0, len(files)):
     files[i].close()
