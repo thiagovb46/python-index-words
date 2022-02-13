@@ -1,6 +1,8 @@
 
 import nltk
 
+import string
+
 listofResults = []
 def createTheListOfFiles(linksOfFiles):
     files = []
@@ -18,8 +20,10 @@ def storeFileContent(files):
 
 #Returns the string received in lowerCase and without \n in the end of string
 def normalizeString (word):
+    
     word = word.lower()
     word = word.rstrip()
+
     return word
 
 def normalizeList(filesContent):
@@ -39,7 +43,10 @@ def tokenizeListOfWords(filesContent):
 
 #Returns a list of StopWords in a tree dimention list
 def removeStopwords (treeDimensionsList):
+
     stopwords = nltk.corpus.stopwords.words('portuguese') #List of stopwords in portuguese
+    for i in list(string.punctuation):
+        stopwords.append(i)
     tobeDeleted = []
     for i in range(0,len(treeDimensionsList)):
         for j in range (0, len(treeDimensionsList[i])):
@@ -61,19 +68,18 @@ def getWordRadical(treeDimensionsList):
     
 def createsAnIndex(treeDimensionsList):
     index = {}
-    indexFileCount = {}
     for i in range(0,len(treeDimensionsList)):
         for j in range (0, len(treeDimensionsList[i])):
             for k in range(0,len(treeDimensionsList[i][j])):
-                if(treeDimensionsList[i][j][k] in index and i in index[treeDimensionsList[i][j][k]].keys()):
-                    index[treeDimensionsList[i][j][k]] [i] +=1
+                if(treeDimensionsList[i][j][k] in index and (i+1) in index[treeDimensionsList[i][j][k]].keys()):
+                    index[treeDimensionsList[i][j][k]] [i+1] +=1
                 else:
                     if(treeDimensionsList[i][j][k] in index):
-                        index[treeDimensionsList[i][j][k]] [i] = 1
+                        index[treeDimensionsList[i][j][k]] [i+1] = 1
                     else:
-                        index.update({treeDimensionsList[i][j][k]: {i: 1 } }) 
+                        index.update({treeDimensionsList[i][j][k]: {i+1: 1 } }) 
     return index;
-    
+
 def closeFiles (files):
     for i in range(0, len(files)):
         files[i].close()
@@ -90,10 +96,33 @@ def main():
     wordsOfEachDocument = tokenizeListOfWords(filesContent)
     removeStopwords(wordsOfEachDocument);
     getWordRadical(wordsOfEachDocument);
-
+    
     index = createsAnIndex(wordsOfEachDocument);
-    print(index)
+    
+    indice = open('indice.txt', 'w+')
+    words = list(index.keys())
+    words.sort()
+    
+            
+    indice.close()
 
     closeFiles(files)
 
 main()
+
+
+
+
+
+# {
+#     'cas': {1: 1, 2: 4, 3: 3}, 
+#     'engrac': {1: 1}, 
+#     'tet': {1: 1}, 
+#     'nad': {1: 1}, 
+#     'qu': {2: 2, 3: 2}, 
+#     'mor': {2: 1, 3: 1}, 
+#     'comig': {3: 2}, 
+#     'am': {3: 1}, 
+#     'faç': {3: 1}, 
+#     'favor': {3: 1}
+# }
