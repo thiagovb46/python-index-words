@@ -1,26 +1,41 @@
 
 import nltk
 
-linksOfFiles = open('links.txt') #Open the file with all links of files
+def createTheListOfFiles(linksOfFiles):
+    files = []
+    listOfFiles = linksOfFiles.readlines()
+    for i in range(0,len(listOfFiles)):
+        listOfFiles[i] = listOfFiles[i].rstrip()
+        files.append(open(listOfFiles[i]))
+    return files
 
-files = [] #List of open files
+def storeFileContent(files):
+    filesContent = []
+    for j in range(0, len(files)):
+        filesContent.append(files[j].readlines())
+    return filesContent
 
-stopwords = nltk.corpus.stopwords.words('portuguese') #List of stopwords
-
-listOfFiles = linksOfFiles.readlines() # Create an array of files paths
-
-wordsOfthisDocument = []
-wordsOfEachDocument = []
-
-filesContent = []
-#Returns the string received in loweCase and without \n in the end of string
+#Returns the string received in lowerCase and without \n in the end of string
 def normalizeString (word):
     word = word.lower()
     word = word.rstrip()
     return word
 
+def normalizeList(filesContent):
+    for i in range(0,len(filesContent)):
+        for j in range(0,len(filesContent[i])):
+            filesContent[i] [j] = normalizeString(filesContent[i] [j])
+
+def tokenizeListOfWords(filesContent, wordsOfthisDocument, wordsOfEachDocument):
+    for i in range(0,len(filesContent)):
+        for j in range(0,len(filesContent[i])):
+            wordsOfthisDocument.append(nltk.word_tokenize(filesContent[i][j]))
+        wordsOfEachDocument.append(wordsOfthisDocument.copy())
+        wordsOfthisDocument.clear()
+
 #Returns a list of StopWords in a tree dimention list
 def removeStopwords (treeDimensionsList):
+    stopwords = nltk.corpus.stopwords.words('portuguese') #List of stopwords in portuguese
     tobeDeleted = []
     for i in range(0,len(treeDimensionsList)):
         for j in range (0, len(treeDimensionsList[i])):
@@ -32,28 +47,28 @@ def removeStopwords (treeDimensionsList):
             tobeDeleted.clear()
     return treeDimensionsList;
 
-for i in range(0,len(listOfFiles)):
-    listOfFiles[i] = listOfFiles[i].rstrip()
-    files.append(open(listOfFiles[i]))
+def closeFiles (files):
+    for i in range(0, len(files)):
+        files[i].close()
+    return
+    
+def main():
 
-for j in range(0, len(files)):
-    filesContent.append(files[j].readlines())
+    linksOfFiles = open('links.txt') #Open a file with links to the files that will be indexed
 
-for i in range(0,len(filesContent)):
-    for j in range(0,len(filesContent[i])):
-        filesContent[i] [j] = normalizeString(filesContent[i] [j])
+    files = createTheListOfFiles(linksOfFiles) #Declaration of array that store the list of files
 
+    wordsOfthisDocument = []
 
-for i in range(0,len(filesContent)):
-    for j in range(0,len(filesContent[i])):
-        wordsOfthisDocument.append(nltk.word_tokenize(filesContent[i][j]))
-    wordsOfEachDocument.append(wordsOfthisDocument.copy())
-    wordsOfthisDocument.clear()
+    wordsOfEachDocument = []
+    
+    filesContent = storeFileContent(files)    
+    normalizeList(filesContent)
+    tokenizeListOfWords(filesContent, wordsOfthisDocument, wordsOfEachDocument)
+    removeStopwords(wordsOfEachDocument);
 
-removeStopwords(wordsOfEachDocument);
+    for i in range(0,len(wordsOfEachDocument)):
+            print(wordsOfEachDocument[i])
+    closeFiles(files)
 
-for i in range(0,len(wordsOfEachDocument)):
-        print(wordsOfEachDocument[i])
-
-for i in range(0, len(files)):
-    files[i].close()
+main()
