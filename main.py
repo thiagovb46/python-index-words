@@ -1,6 +1,7 @@
 
 import nltk
 
+listofResults = []
 def createTheListOfFiles(linksOfFiles):
     files = []
     listOfFiles = linksOfFiles.readlines()
@@ -63,11 +64,15 @@ def createsAnIndex(treeDimensionsList):
     for i in range(0,len(treeDimensionsList)):
         for j in range (0, len(treeDimensionsList[i])):
             for k in range(0,len(treeDimensionsList[i][j])):
-                if(treeDimensionsList[i][j][k] in index):
-                    indexFileCount.update({i+1:indexFileCount[i+1]+1})
+                if(treeDimensionsList[i][j][k] in index and i in index[treeDimensionsList[i][j][k]].keys()):
+                    index[treeDimensionsList[i][j][k]] [i] +=1
+                    # index[treeDimensionsList[i][j][k]].update({i: index[treeDimensionsList[i][j][k]].values +1})
+                    # index.update({treeDimensionsList[i][j][k]: ) 
                 else:
-                    indexFileCount.update({i+1:1});
-                    index.update({treeDimensionsList[i][j][k]:indexFileCount[i+1]}) 
+                    if(treeDimensionsList[i][j][k] in index):
+                        index[treeDimensionsList[i][j][k]] [i] = 1
+                    else:
+                        index.update({treeDimensionsList[i][j][k]: {i: 1 } }) 
     return index;
     
 def closeFiles (files):
