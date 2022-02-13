@@ -88,7 +88,7 @@ def closeFiles (files):
     
 def main():
 
-    linksOfFiles = open('links.txt') #Open a file with links to the files that will be indexed
+    linksOfFiles = open('base.txt') #Open a file with links to the files that will be indexed
 
     files = createTheListOfFiles(linksOfFiles) #Declaration of array that store the list of files
     filesContent = storeFileContent(files)    
