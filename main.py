@@ -45,6 +45,7 @@ def tokenizeListOfWords(filesContent):
 def removeStopwords (treeDimensionsList):
 
     stopwords = nltk.corpus.stopwords.words('portuguese') #List of stopwords in portuguese
+    #Appends de ponctuation in stopwords
     for i in list(string.punctuation):
         stopwords.append(i)
     tobeDeleted = []
@@ -102,27 +103,19 @@ def main():
     indice = open('indice.txt', 'w+')
     words = list(index.keys())
     words.sort()
+    count = 0
     
-            
+    for i in words:
+        for j in list(index[i].keys()):
+            if(count==0):
+                indice.write(str(i)+": "+str(j)+ ","+str(index[i][j])+" ")
+                count+=1
+            else:
+                indice.write (str(j)+","+str(index[i][j])+" ")
+        indice.write("\n")
+        count = 0
     indice.close()
 
     closeFiles(files)
 
 main()
-
-
-
-
-
-# {
-#     'cas': {1: 1, 2: 4, 3: 3}, 
-#     'engrac': {1: 1}, 
-#     'tet': {1: 1}, 
-#     'nad': {1: 1}, 
-#     'qu': {2: 2, 3: 2}, 
-#     'mor': {2: 1, 3: 1}, 
-#     'comig': {3: 2}, 
-#     'am': {3: 1}, 
-#     'faç': {3: 1}, 
-#     'favor': {3: 1}
-# }
