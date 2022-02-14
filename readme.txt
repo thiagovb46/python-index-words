@@ -1,5 +1,3 @@
-Aluno : Thiago Vasconcelos Braga
-Matricula: 11921BSI225
 
 o Programa  a ser executado é o main.py
 O arquivo base com os caminhos dos arquivos deve se chamar 'base' e ter formato txt = base.txt
