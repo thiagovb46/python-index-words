@@ -109,10 +109,13 @@ def main():
         for j in list(index[i].keys()):
             if(count==0):
                 indice.write(str(i)+": "+str(j)+ ","+str(index[i][j])+" ")
+                print(str(i)+": "+str(j)+ ","+str(index[i][j]), end=" ")
                 count+=1
             else:
                 indice.write (str(j)+","+str(index[i][j])+" ")
+                print (str(j)+","+str(index[i][j]), end = " ")
         indice.write("\n")
+        print()
         count = 0
     indice.close()
 
