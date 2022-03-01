@@ -1,7 +1,14 @@
 
+from ctypes import sizeof
+from re import search
+from unittest import result
+from xml.dom.minidom import Element
 import nltk
+import argparse
 
 import string
+
+from pkg_resources import WorkingSet
 
 listofResults = []
 def createTheListOfFiles(linksOfFiles):
@@ -68,6 +75,7 @@ def getWordRadical(treeDimensionsList):
     return
     
 def createsAnIndex(treeDimensionsList):
+
     index = {}
     for i in range(0,len(treeDimensionsList)):
         for j in range (0, len(treeDimensionsList[i])):
@@ -81,30 +89,8 @@ def createsAnIndex(treeDimensionsList):
                         index.update({treeDimensionsList[i][j][k]: {i+1: 1 } }) 
     return index;
 
-def closeFiles (files):
-    for i in range(0, len(files)):
-        files[i].close()
-    return
-    
-def main():
-
-    linksOfFiles = open('base.txt') #Open a file with links to the files that will be indexed
-
-    files = createTheListOfFiles(linksOfFiles) #Declaration of array that store the list of files
-    filesContent = storeFileContent(files)    
-    normalizeList(filesContent)
-    
-    wordsOfEachDocument = tokenizeListOfWords(filesContent)
-    removeStopwords(wordsOfEachDocument);
-    getWordRadical(wordsOfEachDocument);
-    
-    index = createsAnIndex(wordsOfEachDocument);
-    
-    indice = open('indice.txt', 'w+')
-    words = list(index.keys())
-    words.sort()
+def showIndex(words, index, indice):
     count = 0
-    
     for i in words:
         for j in list(index[i].keys()):
             if(count==0):
@@ -117,8 +103,136 @@ def main():
         indice.write("\n")
         print()
         count = 0
-    indice.close()
 
+def closeFiles (files):
+    for i in range(0, len(files)):
+        files[i].close()
+    return
+
+def booleanSearch (wordsToSearch, words, index):
+    
+    notSearches = []
+    andSearches = []
+
+    dictOfEachWord ={}
+    for i in wordsToSearch:
+         if(i in words):
+             for j in index[i].keys():
+                if(i  in dictOfEachWord):
+                    dictOfEachWord[i].append(j)
+                else:
+                    dictOfEachWord[i] = [j]
+
+    results = [];
+
+    for i in list(dictOfEachWord.keys()):
+        for j in  range (0, len(dictOfEachWord[i])):
+            if(dictOfEachWord[i][j] not in results):
+                results.append(dictOfEachWord[i][j]);
+    
+    #Appends on list notSearches all the words with not operator after
+    for i in range(0,len(wordsToSearch)):
+        if(wordsToSearch[i] == '!'):
+            notSearches.append(wordsToSearch[i+1]);
+    
+    for i in list(dictOfEachWord.keys()):
+        if(i in notSearches):
+            for j in range(0,len(dictOfEachWord[i])):
+                results.remove(dictOfEachWord[i][j]);
+    #Removes from  the  result dictionary, documents that contains words with not operator
+    # for i in notSearches:
+    #     dictOfEachWord.pop(i);
+
+    for i in range(len(wordsToSearch)):
+        if(wordsToSearch[i] == '&'):
+            if(wordsToSearch[i+1] == '!'):
+                andSearches.append((wordsToSearch[i-1],wordsToSearch[i-1]));
+            else:
+                andSearches.append((wordsToSearch[i-1],wordsToSearch[i+1]));
+    docsAnd = []
+    docs = []
+    docs1 = []
+    indexestoRemove = []
+
+    for i in  range(0,len(andSearches)):
+         if((andSearches[i][0] in dictOfEachWord) and  (andSearches[i][1] in dictOfEachWord)):
+            docs = dictOfEachWord[andSearches[i][0]].copy(); 
+            docs1 = dictOfEachWord[andSearches[i][1]].copy();
+            #  print(docs);
+            #  print(docs1);
+    docsAnd =  list(set(docs) & set(docs1));
+            
+    # # for j in range(0,len(docsAnd)):
+    # #     if(docsAnd[j] not in results):
+    # #         indexestoRemove.append(j);
+
+    # for k in indexestoRemove:
+    #             results.pop(k);
+    # for k in results:
+    #      if k not in docsAnd:
+    #             results.remove(k);
+    return list ( set(results) & set (docsAnd));
+
+def main():
+    parser = argparse.ArgumentParser(description = "Files")
+    parser.add_argument("base")
+    parser.add_argument("consulta")
+    args = parser.parse_args()
+
+    linksOfFiles = open(args.base);
+    search = open(args.consulta)#Open a  file with content to be searched
+
+    
+    wordsToSearch = search.readline();
+    wordsToSearch = normalizeString(wordsToSearch);
+    wordsToSearch = wordsToSearch.split('|');
+
+    for i in range(0, len(wordsToSearch)):
+        wordsToSearch[i] = nltk.word_tokenize(wordsToSearch[i]);
+    radicalExtractor =  nltk.stem.RSLPStemmer() 
+
+    #Gets the radical of each word in ListOfWordsToSearch
+    for i in range(0,len(wordsToSearch)):
+        for j in range(0,len(wordsToSearch[i])):
+            wordsToSearch[i][j] = radicalExtractor.stem(wordsToSearch[i][j]);
+    
+    stopwords = nltk.corpus.stopwords.words('portuguese') #List of stopwords in portuguese
+    #Appends de ponctuation in stopwords
+    ponc = list(string.punctuation);
+    ponc.remove('!');
+    ponc.remove('|');
+    ponc.remove('&');
+
+    for i in ponc:
+        stopwords.append(i)
+
+     #Open a file with links to the files that will be indexed
+
+    files = createTheListOfFiles(linksOfFiles) #Declaration of array that store the list of files
+    filesContent = storeFileContent(files)    
+    normalizeList(filesContent)
+    
+    wordsOfEachDocument = tokenizeListOfWords(filesContent);
+    removeStopwords(wordsOfEachDocument);
+    getWordRadical(wordsOfEachDocument);
+    
+    index = createsAnIndex(wordsOfEachDocument);
+    
+    indice = open('indice.txt', 'w+')
+    words = list(index.keys())
+    words.sort()
+
+    
+    showIndex(words, index, indice);
+    
+    indice.close()
     closeFiles(files)
+
+    resultsOfBooleanSearch = []
+    print(wordsToSearch)
+    for i in range(0,len(wordsToSearch)):
+       resultsOfBooleanSearch.append(booleanSearch(wordsToSearch[i], words, index));
+
+    print(resultsOfBooleanSearch)
 
 main()
