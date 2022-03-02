@@ -1,7 +1,7 @@
 
 from ctypes import sizeof
 from re import search
-from unittest import result
+from typing import final
 from xml.dom.minidom import Element
 import nltk
 import argparse
@@ -115,6 +115,7 @@ def booleanSearch (wordsToSearch, words, index):
     andSearches = []
 
     dictOfEachWord ={}
+   
     for i in wordsToSearch:
          if(i in words):
              for j in index[i].keys():
@@ -122,9 +123,16 @@ def booleanSearch (wordsToSearch, words, index):
                     dictOfEachWord[i].append(j)
                 else:
                     dictOfEachWord[i] = [j]
-
     results = [];
+    
+    if('!' not in wordsToSearch and '&' not in wordsToSearch):
+        for i in wordsToSearch:
+            if(i in dictOfEachWord):
+                for j in dictOfEachWord[i]:
+                    results.append(j);
+        return  results;
 
+    results.clear();
     for i in list(dictOfEachWord.keys()):
         for j in  range (0, len(dictOfEachWord[i])):
             if(dictOfEachWord[i][j] not in results):
@@ -209,6 +217,7 @@ def main():
      #Open a file with links to the files that will be indexed
 
     files = createTheListOfFiles(linksOfFiles) #Declaration of array that store the list of files
+
     filesContent = storeFileContent(files)    
     normalizeList(filesContent)
     
@@ -229,10 +238,24 @@ def main():
     closeFiles(files)
 
     resultsOfBooleanSearch = []
-    print(wordsToSearch)
     for i in range(0,len(wordsToSearch)):
        resultsOfBooleanSearch.append(booleanSearch(wordsToSearch[i], words, index));
+       
+    finalResult = []
+    for i in  range( len(resultsOfBooleanSearch)):
+        for j in range(len(resultsOfBooleanSearch[i])):
+            if(files[resultsOfBooleanSearch[i][j]-1].name not in finalResult):
+                finalResult.append(files[resultsOfBooleanSearch[i][j]-1].name);
+    finalResult.sort()
 
-    print(resultsOfBooleanSearch)
+    answer =open('resposta.txt', 'w+')
+    print(len(finalResult));
+    answer.writelines(str(len(finalResult)));
+    answer.writelines('\n');
+    for i in finalResult:
+        print(i);
+        answer.writelines(i+'\n');
+    answer.close();
+            # print(resultsOfBooleanSearch[i][j]-1)
 
 main()
