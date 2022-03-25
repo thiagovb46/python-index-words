@@ -1,9 +1,12 @@
 
+from cmath import log, sqrt
 from ctypes import sizeof
-from re import search
+from re import T, search
 from typing import final
+from unittest import removeResult
 from xml.dom.minidom import Element
 import nltk
+import math
 import argparse
 
 import string
@@ -106,80 +109,17 @@ def showIndex(words, index, indice):
 
 def closeFiles (files):
     for i in range(0, len(files)):
-        files[i].close()
+        files[i].close()    
     return
 
-def booleanSearch (wordsToSearch, words, index):
-    
-    notSearches = []
-    andSearches = []
+def Tf(freq):
+    return 1+math.log10(freq);
 
-    dictOfEachWord ={}
-   
-    for i in wordsToSearch:
-         if(i in words):
-             for j in index[i].keys():
-                if(i  in dictOfEachWord):
-                    dictOfEachWord[i].append(j)
-                else:
-                    dictOfEachWord[i] = [j]
-    results = [];
-    
-    if('!' not in wordsToSearch and '&' not in wordsToSearch):
-        for i in wordsToSearch:
-            if(i in dictOfEachWord):
-                for j in dictOfEachWord[i]:
-                    results.append(j);
-        return  results;
-
-    results.clear();
-    for i in list(dictOfEachWord.keys()):
-        for j in  range (0, len(dictOfEachWord[i])):
-            if(dictOfEachWord[i][j] not in results):
-                results.append(dictOfEachWord[i][j]);
-    
-    #Appends on list notSearches all the words with not operator after
-    for i in range(0,len(wordsToSearch)):
-        if(wordsToSearch[i] == '!'):
-            notSearches.append(wordsToSearch[i+1]);
-    
-    for i in list(dictOfEachWord.keys()):
-        if(i in notSearches):
-            for j in range(0,len(dictOfEachWord[i])):
-                results.remove(dictOfEachWord[i][j]);
-    #Removes from  the  result dictionary, documents that contains words with not operator
-    # for i in notSearches:
-    #     dictOfEachWord.pop(i);
-
-    for i in range(len(wordsToSearch)):
-        if(wordsToSearch[i] == '&'):
-            if(wordsToSearch[i+1] == '!'):
-                andSearches.append((wordsToSearch[i-1],wordsToSearch[i-1]));
-            else:
-                andSearches.append((wordsToSearch[i-1],wordsToSearch[i+1]));
-    docsAnd = []
-    docs = []
-    docs1 = []
-    indexestoRemove = []
-
-    for i in  range(0,len(andSearches)):
-         if((andSearches[i][0] in dictOfEachWord) and  (andSearches[i][1] in dictOfEachWord)):
-            docs = dictOfEachWord[andSearches[i][0]].copy(); 
-            docs1 = dictOfEachWord[andSearches[i][1]].copy();
-            #  print(docs);
-            #  print(docs1);
-    docsAnd =  list(set(docs) & set(docs1));
-            
-    # # for j in range(0,len(docsAnd)):
-    # #     if(docsAnd[j] not in results):
-    # #         indexestoRemove.append(j);
-
-    # for k in indexestoRemove:
-    #             results.pop(k);
-    # for k in results:
-    #      if k not in docsAnd:
-    #             results.remove(k);
-    return list ( set(results) & set (docsAnd));
+def Idf(term, totalDocs, index):
+    countTerms = 0;
+    if(term in index.keys()):
+        countTerms = len(list(index[term].keys()))
+    return math.log10(totalDocs/countTerms);
 
 def main():
     parser = argparse.ArgumentParser(description = "Files")
@@ -193,7 +133,7 @@ def main():
     
     wordsToSearch = search.readline();
     wordsToSearch = normalizeString(wordsToSearch);
-    wordsToSearch = wordsToSearch.split('|');
+    wordsToSearch = wordsToSearch.split('&');
 
     for i in range(0, len(wordsToSearch)):
         wordsToSearch[i] = nltk.word_tokenize(wordsToSearch[i]);
@@ -233,29 +173,89 @@ def main():
 
     
     showIndex(words, index, indice);
-    
+    #print(index);
+    closeFiles(files);
+
     indice.close()
-    closeFiles(files)
+    listOfWeigthVectors = []
+    DocWeigthVector = []
+    
+    for j in range(1,len(files)+1):
+        for  i in index.keys():
+            if(j in index[i]):
+                DocWeigthVector.append(round(Tf(index[i][j]) * Idf(i, len(files), index),4));
+            else:
+                DocWeigthVector.append(0);
+        listOfWeigthVectors.append(DocWeigthVector.copy());
+        DocWeigthVector.clear();
 
-    resultsOfBooleanSearch = []
-    for i in range(0,len(wordsToSearch)):
-       resultsOfBooleanSearch.append(booleanSearch(wordsToSearch[i], words, index));
-       
-    finalResult = []
-    for i in  range( len(resultsOfBooleanSearch)):
-        for j in range(len(resultsOfBooleanSearch[i])):
-            if(files[resultsOfBooleanSearch[i][j]-1].name not in finalResult):
-                finalResult.append(files[resultsOfBooleanSearch[i][j]-1].name);
-    finalResult.sort()
+        pesos = open('pesos.txt','w+');
 
-    answer =open('resposta.txt', 'w+')
-    print(len(finalResult));
-    answer.writelines(str(len(finalResult)));
-    answer.writelines('\n');
-    for i in finalResult:
-        print(i);
-        answer.writelines(i+'\n');
-    answer.close();
-            # print(resultsOfBooleanSearch[i][j]-1)
 
-main()
+    for i in range(len(files)):
+        print(files[i].name,end=": ");
+        pesos.write(files[i].name+": ");
+        for j in range(len(listOfWeigthVectors[i])):
+            if(listOfWeigthVectors[i][j] != 0):
+                pesos.write(words[j]+", "+str("%.4f"%listOfWeigthVectors[i][j])+" ");
+                print(words[j]+", "+str("%.4f"%listOfWeigthVectors[i][j]), end=" ");
+        print();
+        pesos.write('\n');
+    
+    pesos.close();
+
+
+    searches_ = []
+    weigthSearchV = []
+    for i in wordsToSearch:
+        for j in i:
+            searches_.append(j);
+    
+    for i in range(len(words)):
+        if(words[i] in searches_):
+            weigthSearchV.append(round(Tf(1)*Idf(words[i],len(files), index),4));
+        else:
+            weigthSearchV.append(0);
+
+    listOfDistanceSearchToVector = []
+    denoSumWeigthDoc = 0;
+    denoSumWeigthSearch = 0;
+    numerador = 0;
+
+    for i in listOfWeigthVectors:
+        for j in range(len(i)):
+            numerador += i[j] * weigthSearchV[j];
+            denoSumWeigthDoc += (i[j]**2);
+            denoSumWeigthSearch+= (weigthSearchV[j]**2);
+        listOfDistanceSearchToVector.append(numerador/(pow(denoSumWeigthDoc,1/2) * pow(denoSumWeigthSearch,1/2)));
+        denoSumWeigthDoc = 0;
+        denoSumWeigthSearch = 0;
+        numerador = 0;
+    numberOfResults = 0;
+    
+    for i in listOfDistanceSearchToVector:
+        if(i>0.001):
+            numberOfResults+=1;
+    print(numberOfResults);
+  
+    listOfDistanceSearchToVector_aux = listOfDistanceSearchToVector.copy();
+    result_ = []
+    while(len(listOfDistanceSearchToVector)>0):
+        for i in range (len(listOfDistanceSearchToVector)):
+            if(i==0):
+                max = listOfDistanceSearchToVector[0];
+            else:
+                if(listOfDistanceSearchToVector[i]>max):
+                    max = listOfDistanceSearchToVector[i];
+        result_.append((max,listOfDistanceSearchToVector_aux.index(max)));
+        listOfDistanceSearchToVector.remove(max);
+    
+    resposta = open('resposta.txt','w+');
+    for i in result_:
+        if(i[0]>0.001):
+            print(files[i[1]].name+" "+str("%.4f"%i[0]));
+            resposta.write(files[i[1]].name+" "+str("%.4f"%i[0]));
+            resposta.write("\n");
+    
+    resposta.close();
+main()  
