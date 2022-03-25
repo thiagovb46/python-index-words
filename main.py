@@ -1,4 +1,5 @@
 
+
 from cmath import log, sqrt
 from ctypes import sizeof
 from re import T, search
@@ -180,25 +181,26 @@ def main():
     listOfWeigthVectors = []
     DocWeigthVector = []
     
-    for j in range(1,len(files)+1):
-        for  i in index.keys():
-            if(j in index[i]):
-                DocWeigthVector.append(round(Tf(index[i][j]) * Idf(i, len(files), index),4));
+    for i in range(len(files)):
+        for  j in words:
+            if(i+1 in index[j].keys()):
+                DocWeigthVector.append(Tf(index[j][i+1]) * Idf(j, len(files), index));
             else:
                 DocWeigthVector.append(0);
         listOfWeigthVectors.append(DocWeigthVector.copy());
         DocWeigthVector.clear();
 
-        pesos = open('pesos.txt','w+');
+    pesos = open('pesos.txt','w+');
 
+    print(listOfWeigthVectors);
 
-    for i in range(len(files)):
+    for i in range(0,len(files)):
         print(files[i].name,end=": ");
         pesos.write(files[i].name+": ");
         for j in range(len(listOfWeigthVectors[i])):
             if(listOfWeigthVectors[i][j] != 0):
-                pesos.write(words[j]+", "+str("%.4f"%listOfWeigthVectors[i][j])+" ");
-                print(words[j]+", "+str("%.4f"%listOfWeigthVectors[i][j]), end=" ");
+                pesos.write(words[j]+", "+str(listOfWeigthVectors[i][j])+" ");
+                print(words[j]+", "+str(listOfWeigthVectors[i][j]), end=" ");
         print();
         pesos.write('\n');
     
@@ -213,7 +215,7 @@ def main():
     
     for i in range(len(words)):
         if(words[i] in searches_):
-            weigthSearchV.append(round(Tf(1)*Idf(words[i],len(files), index),4));
+            weigthSearchV.append(Tf(1)*Idf(words[i],len(files), index));
         else:
             weigthSearchV.append(0);
 
@@ -258,4 +260,4 @@ def main():
             resposta.write("\n");
     
     resposta.close();
-main()  
+main()
